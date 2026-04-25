@@ -1,0 +1,125 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  INFLUENCER
+  FINANCE
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  PAID
+  REJECTED
+}
+
+enum SaleStatus {
+  PENDING
+  CONFIRMED
+  REFUNDED
+}
+
+model User {
+  id           String      @id @default(cuid())
+  name         String
+  email        String      @unique
+  passwordHash String
+  role         UserRole    @default(INFLUENCER)
+  avatar       String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  influencer   Influencer?
+
+  @@map("users")
+}
+
+model Influencer {
+  id             String    @id @default(cuid())
+  userId         String    @unique
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  referralCode   String    @unique
+  commissionRate Float     @default(10.0) // percentage
+  bio            String?
+  instagram      String?
+  youtube        String?
+  twitter        String?
+  website        String?
+  totalEarnings  Float     @default(0)
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  sales          Sale[]
+  payments       Payment[]
+  clicks         Click[]
+  insights       AIInsight[]
+
+  @@map("influencers")
+}
+
+model Sale {
+  id           String     @id @default(cuid())
+  influencerId String
+  influencer   Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+  productName  String
+  amount       Float
+  commission   Float
+  status       SaleStatus @default(CONFIRMED)
+  customerEmail String?
+  orderId      String?    @unique
+  date         DateTime   @default(now())
+  createdAt    DateTime   @default(now())
+
+  @@map("sales")
+}
+
+model Click {
+  id           String     @id @default(cuid())
+  influencerId String
+  influencer   Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+  referralCode String
+  ipAddress    String?
+  userAgent    String?
+  country      String?
+  converted    Boolean    @default(false)
+  timestamp    DateTime   @default(now())
+
+  @@map("clicks")
+}
+
+model Payment {
+  id           String        @id @default(cuid())
+  influencerId String
+  influencer   Influencer    @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+  amount       Float
+  status       PaymentStatus @default(PENDING)
+  periodStart  DateTime
+  periodEnd    DateTime
+  paidAt       DateTime?
+  notes        String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@map("payments")
+}
+
+model AIInsight {
+  id           String     @id @default(cuid())
+  influencerId String
+  influencer   Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+  insightType  String     // "performance", "prediction", "fraud"
+  content      String     @db.Text
+  metadata     String?    @db.Text // JSON string
+  generatedAt  DateTime   @default(now())
+
+  @@map("ai_insights")
+}
