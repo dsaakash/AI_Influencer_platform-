@@ -6,13 +6,15 @@ import { auth } from '@/lib/auth';
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const role = (session.user as any).role;
     let where: any = {};
 
     if (role === 'INFLUENCER') {
-      const influencer = await prisma.influencer.findUnique({ where: { userId: session.user.id } });
+      const userId = (session.user as any).id;
+      if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      const influencer = await prisma.influencer.findUnique({ where: { userId } });
       if (!influencer) return NextResponse.json([]);
       where.influencerId = influencer.id;
     }
@@ -37,7 +39,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
-    if (!session || (session.user as any).role !== 'ADMIN') {
+    if (!session?.user || (session.user as any).role !== 'ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -64,7 +66,7 @@ export async function POST(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     const session = await auth();
-    if (!session || (session.user as any).role !== 'ADMIN') {
+    if (!session?.user || (session.user as any).role !== 'ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

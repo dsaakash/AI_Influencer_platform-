@@ -6,7 +6,7 @@ import { generateAIContent } from '@/lib/ai';
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
-    if (!session || (session.user as any).role !== 'ADMIN') {
+    if (!session?.user || (session.user as any).role !== 'ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
