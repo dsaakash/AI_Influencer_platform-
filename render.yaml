@@ -14,7 +14,11 @@ services:
           property: connectionString
       - key: NEXTAUTH_SECRET
         generateValue: true
+      - key: AUTH_SECRET # Preferred by NextAuth v5
+        generateValue: true
       - key: NEXTAUTH_URL
+        fromContext: op-service-url
+      - key: AUTH_URL # Preferred by NextAuth v5
         fromContext: op-service-url
       - key: GEMINI_API_KEY
         sync: false # Set this in the Render Dashboard

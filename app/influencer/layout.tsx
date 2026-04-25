@@ -4,7 +4,7 @@ import InfluencerSidebar from '@/components/InfluencerSidebar';
 
 export default async function InfluencerLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
-  if (!session) redirect('/login');
+  if (!session?.user) redirect('/login');
   const role = (session.user as any).role;
   if (role !== 'INFLUENCER') redirect('/admin');
 
