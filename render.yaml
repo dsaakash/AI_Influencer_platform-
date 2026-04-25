@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: ai-influencer-platform
+    runtime: node
+    plan: free
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npx prisma db push && npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ai-influencer-db
+          property: connectionString
+      - key: NEXTAUTH_SECRET
+        generateValue: true
+      - key: NEXTAUTH_URL
+        fromContext: op-service-url
+      - key: GEMINI_API_KEY
+        sync: false # Set this in the Render Dashboard
+      - key: GROQ_API_KEY
+        sync: false # Set this in the Render Dashboard
+
+databases:
+  - name: ai-influencer-db
+    plan: free
+    region: oregon # Adjust region as needed
